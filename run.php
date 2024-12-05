@@ -55,7 +55,7 @@ function autoloadDays(): void
     }
 
     $currentYear = date('Y');
-    for ($year = 2023; $year <= $currentYear; $year++) {
+    for ($year = 2022; $year <= $currentYear; $year++) {
         $dir = __DIR__ . '/' . $year . '/Days';
 
         for ($i = 1; $i <= 25; $i++) {
