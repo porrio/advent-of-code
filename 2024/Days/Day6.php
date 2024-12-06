@@ -8,10 +8,22 @@ use Day;
 
 class Day6 extends Day
 {
+    private array $grid;
+    private int $rows;
+    private int $cols;
+    private array $visited;
+
+    private const DIRECTIONS = ['^' => [-1, 0], '>' => [0, 1], 'v' => [1, 0], '<' => [0, -1]];
+    private const TURNS = ['^' => '>', '>' => 'v', 'v' => '<', '<' => '^'];
+
     public function __construct(int $day, int $year)
     {
         parent::__construct($day, $year);
         parent::fetchData();
+
+        $this->grid = array_map('str_split', $this->data);
+        $this->rows = count($this->grid);
+        $this->cols = count($this->grid[0]);
     }
 
     public function partOne(): int
@@ -26,59 +38,39 @@ class Day6 extends Day
 
     private function simulatePatrol(bool $loopDetection = false, array $grid = null)
     {
-        $grid = $grid ?? array_map('str_split', $this->data);
+        $grid = $grid ?? $this->grid;
 
-        $directions = ['^' => [-1, 0], '>' => [0, 1], 'v' => [1, 0], '<' => [0, -1]];
-        $turns = ['^' => '>', '>' => 'v', 'v' => '<', '<' => '^'];
-
-        $rows = count($grid);
-        $cols = count($grid[0]);
-        $guardPosition = null;
-        $facing = null;
-
-        foreach ($grid as $row => $line) {
-            foreach ($line as $col => $char) {
-                if (in_array($char, ['^', '>', 'v', '<'])) {
-                    $guardPosition = [$row, $col];
-                    $facing = $char;
-                    $grid[$row][$col] = '.';
-                    break 2;
-                }
-            }
-        }
+        [$guardPosition, $facing] = $this->findGuard($grid);
 
         $visitedStates = [];
-        $visited = [];
         if (!$loopDetection) {
-            $visited[implode(',', $guardPosition)] = true;
+            $this->visited[$guardPosition[0]][$guardPosition[1]] = true;
         }
 
         while (true) {
             [$row, $col] = $guardPosition;
-            [$dr, $dc] = $directions[$facing];
+            [$dr, $dc] = self::DIRECTIONS[$facing];
 
             $nextRow = $row + $dr;
             $nextCol = $col + $dc;
 
-            if ($nextRow < 0 || $nextRow >= $rows || $nextCol < 0 || $nextCol >= $cols) {
-                return $loopDetection ? false : count($visited);
+            if ($nextRow < 0 || $nextRow >= $this->rows || $nextCol < 0 || $nextCol >= $this->cols) {
+                return $loopDetection ? false : array_sum(array_map('count', $this->visited));
             }
 
             if ($grid[$nextRow][$nextCol] === '#') {
-                $facing = $turns[$facing];
+                $facing = self::TURNS[$facing];
             } else {
                 $guardPosition = [$nextRow, $nextCol];
 
                 if ($loopDetection) {
-                    $state = implode(',', $guardPosition) . ',' . $facing;
-
-                    if (isset($visitedStates[$state])) {
+                    if (isset($visitedStates[$guardPosition[0]][$guardPosition[1]][$facing])) {
                         return true; // Loop detected
                     }
 
-                    $visitedStates[$state] = true;
+                    $visitedStates[$guardPosition[0]][$guardPosition[1]][$facing] = true;
                 } else {
-                    $visited[implode(',', $guardPosition)] = true;
+                    $this->visited[$guardPosition[0]][$guardPosition[1]] = true;
                 }
             }
         }
@@ -86,14 +78,12 @@ class Day6 extends Day
 
     private function countLoopObstructionPositions(): int
     {
-        $originalGrid = array_map('str_split', $this->data);
-
         $loopCount = 0;
 
-        foreach ($originalGrid as $row => $line) {
+        foreach ($this->visited as $row => $line) {
             foreach ($line as $col => $cell) {
-                if ($cell === '.') {
-                    $grid = $originalGrid;
+                if ($this->grid[$row][$col] === '.') {
+                    $grid = $this->grid;
                     $grid[$row][$col] = '#';
 
                     if ($this->simulatePatrol(true, $grid)) {
@@ -104,5 +94,19 @@ class Day6 extends Day
         }
 
         return $loopCount;
+    }
+
+    private function findGuard(array &$grid): array
+    {
+        foreach ($grid as $row => $line) {
+            $col = strcspn(implode('', $line), '^>v<');
+            if ($col < strlen(implode('', $line))) {
+                $facing = $line[$col];
+                $grid[$row][$col] = '.';
+                return [[$row, $col], $facing];
+            }
+        }
+
+        return [null, null];
     }
 }
