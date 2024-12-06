@@ -12,6 +12,8 @@ class Day6 extends Day
     private int $rows;
     private int $cols;
     private array $visited;
+    private array $guardPosition = [];
+    private string $facing;
 
     private const DIRECTIONS = ['^' => [-1, 0], '>' => [0, 1], 'v' => [1, 0], '<' => [0, -1]];
     private const TURNS = ['^' => '>', '>' => 'v', 'v' => '<', '<' => '^'];
@@ -24,6 +26,11 @@ class Day6 extends Day
         $this->grid = array_map('str_split', $this->data);
         $this->rows = count($this->grid);
         $this->cols = count($this->grid[0]);
+
+        [$guardPosition, $facing] = $this->findGuard($this->grid);
+
+        $this->guardPosition = $guardPosition;
+        $this->facing = $facing;
     }
 
     public function partOne(): int
@@ -40,7 +47,7 @@ class Day6 extends Day
     {
         $grid = $grid ?? $this->grid;
 
-        [$guardPosition, $facing] = $this->findGuard($grid);
+        [$guardPosition, $facing] = [$this->guardPosition, $this->facing];
 
         $visitedStates = [];
         if (!$loopDetection) {
