@@ -43,7 +43,7 @@ function run(int $year, int $day): void
     $result1 = $dayClass->partOne();
     $result2 = $dayClass->partTwo();
 
-    outputResults($day, $year, $result1, $result2, $start);
+    outputResults($day, $year, (string)$result1, (string)$result2, $start);
 }
 
 function autoloadDays(): void
@@ -67,7 +67,7 @@ function autoloadDays(): void
     }
 }
 
-function outputResults(int $day = 0, int $year = 0, int $result1 = 0, int $result2 = 0, $start = null): void
+function outputResults(int $day = 0, int $year = 0, string $result1 = '0', string $result2 = '0', $start = null): void
 {
     $start ??= microtime(true);
     $runtime = floor((microtime(true) - $start) * 1000) . ' ms ';
