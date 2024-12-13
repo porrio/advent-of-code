@@ -19,13 +19,13 @@ class Day9 extends Day
 
     public function partOne(): int
     {
-        $compactedDisk = $this->compactDisk();
+        $compactedDisk = $this->compactDisk1();
         return $this->getCheckSum($compactedDisk);
     }
 
     public function partTwo(): int
     {
-        $compactedDisk = $this->compactDisk(true);
+        $compactedDisk = $this->compactDisk2();
         return $this->getCheckSum($compactedDisk);
     }
 
@@ -56,18 +56,48 @@ class Day9 extends Day
         $this->formattedDisk = $blocks;
     }
 
-    private function compactDisk(bool $fullFileMove = false): array
+    private function compactDisk1(): array
+    {
+        $formattedDisk = $this->formattedDisk;
+        $fileBlocks  = [];
+        $freeSpaces = [];
+
+        foreach ($formattedDisk as $i => $block) {
+            if ($block === '.') {
+                $freeSpaces[] = $i;
+            } else {
+                $fileBlocks[] = $i;
+            }
+        }
+
+        while (!empty($fileBlocks) && !empty($freeSpaces)) {
+            $filePos = array_pop($fileBlocks);
+            $freePos = array_shift($freeSpaces);
+
+            if ($filePos > $freePos) {
+                $formattedDisk[$freePos] = $formattedDisk[$filePos];
+                $formattedDisk[$filePos] = '.';
+
+                $freeSpaces[] = $filePos;
+            } else {
+                break;
+            }
+        }
+
+        return $formattedDisk;
+    }
+
+    private function compactDisk2(): array
     {
         $disk = $this->formattedDisk;
+        $size = count($disk);
 
-        for ($i = count($disk) - 1; $i >= 0; $i--) {
+        for ($i = $size - 1; $i >= 0; $i--) {
             if ($disk[$i] !== '.') {
                 $length = 1;
 
-                if ($fullFileMove === true) {
-                    while ($i - $length >= 0 && $disk[$i - $length] === $disk[$i]) {
-                        $length++;
-                    }
+                while ($i - $length >= 0 && $disk[$i - $length] === $disk[$i]) {
+                    $length++;
                 }
 
                 $leftmostFreeSpace = -1;
@@ -76,10 +106,8 @@ class Day9 extends Day
                     if ($disk[$j] === '.') {
                         $freeSpaceLength = 1;
 
-                        if ($fullFileMove === true) {
-                            while ($j + $freeSpaceLength < $i && $disk[$j + $freeSpaceLength] === '.') {
-                                $freeSpaceLength++;
-                            }
+                        while ($j + $freeSpaceLength < $i && $disk[$j + $freeSpaceLength] === '.') {
+                            $freeSpaceLength++;
                         }
 
                         if ($length <= $freeSpaceLength) {
